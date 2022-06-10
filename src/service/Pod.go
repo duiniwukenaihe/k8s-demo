@@ -17,6 +17,7 @@ type Pod struct {
 	Images     string
 	NodeName   string
 	CreateTime string
+	Message    string
 	Labels     map[string]string
 }
 
@@ -38,6 +39,7 @@ func ListallPod(g *gin.Context) {
 			Labels:     item.Labels,
 			NodeName:   item.Spec.NodeName,
 			Images:     item.Spec.Containers[0].Image,
+			Message:    GetPodMessage(*item),
 			CreateTime: item.CreationTimestamp.Format("2006-01-02 15:04:05"),
 		})
 

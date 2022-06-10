@@ -94,6 +94,7 @@ func GetPodsByDep(dep v1.Deployment) []*Pod {
 				NodeName:   pod.Spec.NodeName,
 				Labels:     pod.Labels,
 				Status:     string(pod.Status.Phase),
+				Message:    GetPodMessage(*pod),
 				CreateTime: pod.CreationTimestamp.Format("2006-01-02 15:04:05"),
 			})
 		}
