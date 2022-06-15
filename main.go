@@ -17,7 +17,7 @@ func main() {
 	r.GET("/service", service.ListService)
 	//r.GET("/deployment", service.GetDeployment)
 	r.GET("pods", service.ListallPod)
-	//	r.GET("deployment1", service.GetDeployment1)
+	//r.GET("deployment1", service.GetDeployment1)
 	core.InitDeployment()
 	r.Run()
 }

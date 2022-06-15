@@ -46,6 +46,52 @@ func ListDeployment(g *gin.Context) {
 	return
 }
 
+func GetLabels(m map[string]string) string {
+	labels := ""
+	// aa=xxx,xxx=xx
+
+	for k, v := range m {
+		if labels != "" {
+			labels += ","
+		}
+		labels += fmt.Sprintf("%s=%s", k, v)
+	}
+	return labels
+}
+func GetPodsByDep(dep v1.Deployment) []*Pod {
+	rsLabelsMap, err := core.RSMap.GetRsLabelsByDeployment(&dep)
+	//fmt.Println(rsLabelsMap)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pods, err := core.PodMap.ListByRsLabels(dep.Namespace, rsLabelsMap)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ret := make([]*Pod, 0)
+	for _, pod := range pods {
+		//
+		if core.RSMap.GetRsLabelsByDeploymentname(&dep) == pod.OwnerReferences[0].Name {
+			ret = append(ret, &Pod{
+				Name:      pod.Name,
+				Namespace: pod.Namespace,
+				Images:    pod.Spec.Containers[0].Image,
+				NodeName:  pod.Spec.NodeName,
+				Labels:    pod.Labels,
+				Status:    string(pod.Status.Phase),
+				//IsReady:   GetPodIsReady(*pod),
+				//	Message:    GetPodMessage(*pod),
+				//Message:      core.EventMap.GetMessage(pod.Namespace, "Pod", pod.Name),
+				//HostIp:       pod.Status.HostIP,
+				//PodIp:        pod.Status.PodIP,
+				//RestartCount: pod.Status.ContainerStatuses[0].RestartCount,
+				CreateTime: pod.CreationTimestamp.Format("2006-01-02 15:04:05"),
+			})
+		}
+	}
+	return ret
+}
+
 //func GetDeployment(ns string,name string) {
 //	ret := make([]*Deployment, 0)
 //	ret = append(ret, &Deployment{
@@ -62,45 +108,6 @@ func ListDeployment(g *gin.Context) {
 //	g.JSON(200, ret)
 //	return
 //}
-func GetLabels(m map[string]string) string {
-	labels := ""
-	// aa=xxx,xxx=xx
-	for k, v := range m {
-		if labels != "" {
-			labels += ","
-		}
-		labels += fmt.Sprintf("%s=%s", k, v)
-	}
-	return labels
-}
-func GetPodsByDep(dep v1.Deployment) []*Pod {
-	rsLabelsMap, err := core.RSMap.GetRsLabelsByDeployment(&dep)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	pods, err := core.PodMap.ListByRsLabels(dep.Namespace, rsLabelsMap)
-	if err != nil {
-		log.Fatal(err)
-	}
-	ret := make([]*Pod, 0)
-
-	for _, pod := range pods {
-		if core.RSMap.GetRsLabelsByDeploymentname(&dep) == pod.OwnerReferences[0].Name {
-			ret = append(ret, &Pod{
-				Name:       pod.Name,
-				Namespace:  pod.Namespace,
-				Images:     pod.Spec.Containers[0].Image,
-				NodeName:   pod.Spec.NodeName,
-				Labels:     pod.Labels,
-				Status:     string(pod.Status.Phase),
-				Message:    GetPodMessage(*pod),
-				CreateTime: pod.CreationTimestamp.Format("2006-01-02 15:04:05"),
-			})
-		}
-	}
-	return ret
-}
 
 //func GetPodsByDep(ns string, dep *v1.Deployment) []*Pod {
 //	ctx := context.Background()

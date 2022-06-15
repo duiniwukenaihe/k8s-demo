@@ -17,8 +17,12 @@ type Pod struct {
 	Images     string
 	NodeName   string
 	CreateTime string
-	Message    string
-	Labels     map[string]string
+	//IsReady    bool
+	//Message      string
+	//HostIp       string
+	//PodIp        string
+	//RestartCount int32
+	Labels map[string]string
 }
 
 func ListallPod(g *gin.Context) {
@@ -33,13 +37,18 @@ func ListallPod(g *gin.Context) {
 	for _, item := range pods {
 
 		ret = append(ret, &Pod{
-			Namespace:  item.Namespace,
-			Name:       item.Name,
-			Status:     string(item.Status.Phase),
-			Labels:     item.Labels,
-			NodeName:   item.Spec.NodeName,
-			Images:     item.Spec.Containers[0].Image,
-			Message:    GetPodMessage(*item),
+			Namespace: item.Namespace,
+			Name:      item.Name,
+			Status:    string(item.Status.Phase),
+			Labels:    item.Labels,
+			NodeName:  item.Spec.NodeName,
+			Images:    item.Spec.Containers[0].Image,
+			//IsReady:   GetPodIsReady(*item),
+			//Message: GetPodMessage(*item),
+			//Message:      core.EventMap.GetMessage(item.Namespace, "Pod", item.Name),
+			//HostIp:       item.Status.HostIP,
+			//PodIp:        item.Status.PodIP,
+			//RestartCount: item.Status.ContainerStatuses[0].RestartCount,
 			CreateTime: item.CreationTimestamp.Format("2006-01-02 15:04:05"),
 		})
 
@@ -61,6 +70,8 @@ func ListPodsByLabel(ns string, labels []map[string]string) (ret []*Pod) {
 			NodeName:  item.Spec.NodeName,
 			Status:    string(item.Status.Phase),
 			//Message: GetPodMessage(*item),
+			//Message:      core.EventMap.GetMessage(item.Namespace, "Pod", item.Name),
+			//RestartCount: item.Status.ContainerStatuses[0].RestartCount,
 			CreateTime: item.CreationTimestamp.Format("2006-01-02 15:22:33"),
 		})
 	}

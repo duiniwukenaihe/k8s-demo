@@ -53,6 +53,18 @@ func (depmap *DeploymentMap) ListByNS(ns string) ([]*v1.Deployment, error) {
 	}
 	return nil, fmt.Errorf("record not found")
 }
+func (depmap *DeploymentMap) GetDeployment(ns string, name string) (*v1.Deployment, error) {
+	depList, err := depmap.ListByNS(ns)
+	if err != nil {
+		return nil, fmt.Errorf("deployment not found")
+	}
+	for _, item := range depList {
+		if item.Name == name {
+			return item, nil
+		}
+	}
+	return nil, fmt.Errorf("deployment not found")
+}
 
 var DepMap *DeploymentMap
 
@@ -87,5 +99,7 @@ func InitDeployment() {
 	Podinformer.Informer().AddEventHandler(&PodHandler{})
 	Rsinformer := factory.Apps().V1().ReplicaSets()
 	Rsinformer.Informer().AddEventHandler(&RSHandler{})
+	eventInformer := factory.Core().V1().Events()
+	eventInformer.Informer().AddEventHandler(&EventHandler{})
 	factory.Start(wait.NeverStop)
 }
