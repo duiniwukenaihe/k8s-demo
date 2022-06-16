@@ -101,5 +101,7 @@ func InitDeployment() {
 	Rsinformer.Informer().AddEventHandler(&RSHandler{})
 	eventInformer := factory.Core().V1().Events()
 	eventInformer.Informer().AddEventHandler(&EventHandler{})
+	ServiceInformer := factory.Core().V1().Services()
+	ServiceInformer.Informer().AddEventHandler(&SvcHandler{})
 	factory.Start(wait.NeverStop)
 }
