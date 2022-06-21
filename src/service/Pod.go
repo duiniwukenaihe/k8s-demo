@@ -7,22 +7,25 @@ import (
 	"k8s-demo1/src/core"
 	. "k8s-demo1/src/lib"
 	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Pod struct {
-	Namespace  string
-	Name       string
-	Status     string
-	Images     string
-	NodeName   string
-	CreateTime string
+	Namespace   string                 `json:"namespace"`
+	Name        string                 `json:"name"`
+	Status      string                 `json:"status"`
+	Images      string                 `json:"images"`
+	NodeName    string                 `json:"nodename"`
+	CreateTime  string                 `json:"createtime"`
+	Annotations map[string]string      `json:"annotations"`
+	Port        []corev1.ContainerPort `json:"port"`
 	//IsReady    bool
 	//Message      string
 	//HostIp       string
 	//PodIp        string
 	//RestartCount int32
-	Labels map[string]string
+	Labels map[string]string `json:"labels"`
 }
 
 func ListallPod(g *gin.Context) {
@@ -55,6 +58,43 @@ func ListallPod(g *gin.Context) {
 	}
 	g.JSON(200, ret)
 	return
+}
+func Createpod(pod Pod) (*corev1.Pod, error) {
+	newpod, err := K8sClient.CoreV1().Pods(pod.Namespace).Create(context.TODO(), &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        pod.Name,
+			Namespace:   pod.Namespace,
+			Labels:      pod.Labels,
+			Annotations: pod.Annotations,
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{Name: pod.Name, Image: pod.Images},
+			},
+		},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		fmt.Println(err)
+	}
+	return newpod, err
+}
+func CreatePod(g *gin.Context) {
+	var NewPod Pod
+	if err := g.ShouldBind(&NewPod); err != nil {
+		g.JSON(500, err)
+	}
+	pod, err := Createpod(NewPod)
+	if err != nil {
+		g.JSON(500, err)
+	}
+	newpod := Pod{
+		Namespace:   pod.Namespace,
+		Name:        pod.Name,
+		Images:      pod.Spec.Containers[0].Image,
+		CreateTime:  pod.CreationTimestamp.Format("2006-01-02 15:04:05"),
+		Annotations: nil,
+	}
+	g.JSON(200, newpod)
 }
 func ListPodsByLabel(ns string, labels []map[string]string) (ret []*Pod) {
 	list, err := core.PodMap.ListByRsLabels(ns, labels)
