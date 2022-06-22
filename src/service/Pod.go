@@ -133,7 +133,17 @@ func UpdatePod(g *gin.Context) {
 	}
 	g.JSON(200, newpod)
 }
-
+func DeletePod(g *gin.Context) {
+	var NewPod Pod
+	if err := g.ShouldBind(&NewPod); err != nil {
+		g.JSON(500, err)
+	}
+	err := K8sClient.CoreV1().Pods(NewPod.Namespace).Delete(context.TODO(), NewPod.Name, metav1.DeleteOptions{})
+	if err != nil {
+		fmt.Println(err)
+	}
+	g.JSON(200, "ok")
+}
 func ListPodsByLabel(ns string, labels []map[string]string) (ret []*Pod) {
 	list, err := core.PodMap.ListByRsLabels(ns, labels)
 	if err != nil {

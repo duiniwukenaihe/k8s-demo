@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s-demo1/src/core"
 	"k8s-demo1/src/lib"
+	. "k8s-demo1/src/lib"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -168,7 +169,17 @@ func UpdateDep(g *gin.Context) {
 	}
 	g.JSON(200, newDep1)
 }
-
+func DeleteDep(g *gin.Context) {
+	var newDep Deployment
+	if err := g.ShouldBind(&newDep); err != nil {
+		g.JSON(500, err)
+	}
+	err := K8sClient.AppsV1().Deployments(newDep.Namespace).Delete(context.Background(), newDep.Name, metav1.DeleteOptions{})
+	if err != nil {
+		g.JSON(500, err)
+	}
+	g.JSON(200, "Deployment has delete")
+}
 func GetLabels(m map[string]string) string {
 	labels := ""
 	// aa=xxx,xxx=xx

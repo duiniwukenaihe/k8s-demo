@@ -102,3 +102,14 @@ func UpdateNameSpace(g *gin.Context) {
 	}
 	g.JSON(200, ns)
 }
+func DeleteNameSpace(g *gin.Context) {
+	var nameSpace Namespace
+	if err := g.ShouldBind(&nameSpace); err != nil {
+		g.JSON(500, err)
+	}
+	err := K8sClient.CoreV1().Namespaces().Delete(context.Background(), nameSpace.Name, metav1.DeleteOptions{})
+	if err != nil {
+		g.JSON(500, err)
+	}
+	g.JSON(200, "Namespace has delete")
+}
