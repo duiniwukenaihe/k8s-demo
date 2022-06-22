@@ -53,6 +53,19 @@ func create(ns Namespace) (*v1.Namespace, error) {
 	}
 	return newNamespace, err
 }
+func updatenamespace(ns Namespace) (*v1.Namespace, error) {
+	ctx := context.Background()
+	newNamespace, err := K8sClient.CoreV1().Namespaces().Update(ctx, &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   ns.Name,
+			Labels: ns.Labels,
+		},
+	}, metav1.UpdateOptions{})
+	if err != nil {
+		fmt.Println(err)
+	}
+	return newNamespace, err
+}
 func CreateNameSpace(g *gin.Context) {
 	var nameSpace Namespace
 	if err := g.ShouldBind(&nameSpace); err != nil {
@@ -67,6 +80,24 @@ func CreateNameSpace(g *gin.Context) {
 		CreateTime:  namespace.CreationTimestamp.Time,
 		Status:      string(namespace.Status.Phase),
 		Labels:      nil,
+		Annotations: nil,
+	}
+	g.JSON(200, ns)
+}
+func UpdateNameSpace(g *gin.Context) {
+	var nameSpace Namespace
+	if err := g.ShouldBind(&nameSpace); err != nil {
+		g.JSON(500, err)
+	}
+	namespace, err := updatenamespace(nameSpace)
+	if err != nil {
+		g.JSON(500, err)
+	}
+	ns := Namespace{
+		Name:        namespace.Name,
+		CreateTime:  namespace.CreationTimestamp.Time,
+		Status:      string(namespace.Status.Phase),
+		Labels:      namespace.Labels,
 		Annotations: nil,
 	}
 	g.JSON(200, ns)
